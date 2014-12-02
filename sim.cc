@@ -1,7 +1,8 @@
 #include "sim.h"
+#include "protocol.h"
 
 EECSim::EECSim() :
-	numNodes(500),
+	numNodes(6),
 	radius(50),
 	algo("Test"),
 	phyMode("DsssRate1Mbps"),
@@ -19,7 +20,7 @@ EECSim::~EECSim()
 	phyMode = "";
 }
 
-uint32_t EECSim::numChannels(10);
+uint32_t EECSim::numChannels(2);
 std::vector< Ptr<YansWifiChannel> > EECSim::m_ChannelSet;
 Ptr<YansWifiChannel> EECSim::GetChannel(uint32_t index)
 {
@@ -115,8 +116,10 @@ void EECSim::InstallApp()
 	string appstr = "Test";
 	for (NodeContainer::Iterator j = c.Begin ();j != c.End (); ++j)
 	{
-		Ptr<Algorithm> app;
-		app = CreateObject<Algorithm>();
+		//Ptr<Algorithm> app;
+		//app = CreateObject<Algorithm>();
+		Ptr<EEC> app;
+		app = CreateObject<EEC>();
 		app->SetStartTime (Seconds (0));
 		app->SetStopTime (Seconds (3));
 

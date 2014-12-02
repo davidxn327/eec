@@ -62,14 +62,13 @@ protected:
 
 	uint32_t m_nodeId;
 	uint32_t m_channelIndex;
+	int m_slot;
 
 private:
 	static Ptr<UniformRandomVariable> urv;
 	virtual void StartApplication (void);
 	virtual void StopApplication (void);
 	void Receive( Ptr<Socket> socket);
-
-	int m_slot;
 };
 
 #endif

@@ -16,6 +16,11 @@
 using namespace ns3;
 using namespace std;
 
+extern int sum_rxdrop;
+extern int sum_txdrop;
+void RxDrop(string context, Ptr<const Packet> p);
+void TxDrop(string context, Ptr<const Packet> p);
+
 typedef struct _dataPacket
 {
 	uint32_t nodeID;

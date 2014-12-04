@@ -49,7 +49,20 @@ void Algorithm::DoDispose(void)
 	Application::DoDispose ();
 }
 
-void PDrop(Ptr<const Packet> p);
+int sum_rxdrop = 0;
+void RxDrop(string context, Ptr<const Packet> p)
+{
+	//std::cout << context << " drop a packet in rx." << std::endl;
+	sum_rxdrop++;
+}
+
+int sum_txdrop = 0;
+void TxDrop(string context, Ptr<const Packet> p)
+{
+	//std::cout << context << " drop a packet in tx." << std::endl;
+	sum_txdrop++;
+}
+
 void Algorithm::StartApplication(void)
 {
 	m_node = GetNode();
@@ -57,8 +70,10 @@ void Algorithm::StartApplication(void)
 	m_device = DynamicCast<WifiNetDevice> (m_node->GetDevice(0));
 	m_phy = DynamicCast<YansWifiPhy> (m_device->GetPhy());
 
-	//m_phy->TraceConnectWithoutContext("PhyRxDrop", MakeCallback(&PDrop));
-	//m_phy->TraceConnectWithoutContext("PhyRxDrop", MakeCallback(&PDrop));
+	stringstream ctx;
+	ctx << m_node->GetId();
+	m_phy->TraceConnect("PhyRxDrop", ctx.str(), MakeCallback(&RxDrop));
+	m_phy->TraceConnect("PhyTxDrop", ctx.str(), MakeCallback(&TxDrop));
 
 	Ptr<EnergySourceContainer> esc = m_node->GetObject<EnergySourceContainer> ();	
 	m_battery = esc->Get(0);

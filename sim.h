@@ -31,7 +31,7 @@ public:
 private:
 	uint32_t numNodes;
 	uint32_t radius;//meter
-	string algo;
+	string pName;
 	string phyMode;
 	NodeContainer c;
 	bool verbose;

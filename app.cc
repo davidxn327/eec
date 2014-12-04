@@ -22,8 +22,19 @@ TypeId Algorithm::GetTypeId(void)
 Algorithm::Algorithm() :
 	m_nodeId(0),
 	m_channelIndex(0),
+	m_switchtime(500),
+	m_txtime(200),
 	m_slot(0)
 {
+	uint32_t total = EECSim::numChannels;
+	for (uint32_t i = 0; i < total; ++i)
+	{
+		double r = GetNextRandom();
+		if (r<0.9)
+		{
+			m_channels.insert(i);
+		}
+	}
 }
 
 Algorithm::~Algorithm()
@@ -38,12 +49,16 @@ void Algorithm::DoDispose(void)
 	Application::DoDispose ();
 }
 
+void PDrop(Ptr<const Packet> p);
 void Algorithm::StartApplication(void)
 {
 	m_node = GetNode();
 	m_mobility = m_node->GetObject<MobilityModel> ();
 	m_device = DynamicCast<WifiNetDevice> (m_node->GetDevice(0));
 	m_phy = DynamicCast<YansWifiPhy> (m_device->GetPhy());
+
+	//m_phy->TraceConnectWithoutContext("PhyRxDrop", MakeCallback(&PDrop));
+	//m_phy->TraceConnectWithoutContext("PhyRxDrop", MakeCallback(&PDrop));
 
 	Ptr<EnergySourceContainer> esc = m_node->GetObject<EnergySourceContainer> ();	
 	m_battery = esc->Get(0);
@@ -65,8 +80,10 @@ void Algorithm::StartApplication(void)
 		m_socket->SetRecvCallback(MakeCallback(&Algorithm::Receive, this));
 	}
 
-	//m_processEvent = Simulator::ScheduleNow (&Algorithm::ScheduleNext, this);
-	m_processEvent = Simulator::Schedule (NanoSeconds (10 * m_nodeId), &Algorithm::ScheduleNext, this);
+	//m_socket->TraceConnectWithoutContext("Drop", MakeCallback(&PDrop));
+
+	m_processEvent = Simulator::ScheduleNow (&Algorithm::ScheduleNextSlot, this);
+	//m_processEvent = Simulator::Schedule (NanoSeconds (1000 * m_nodeId), &Algorithm::ScheduleNextSlot, this);
 }
 
 void Algorithm::StopApplication(void)
@@ -98,25 +115,49 @@ void Algorithm::HandleRecv(DataPacket &data)
 		
 }
 
-void Algorithm::ScheduleNext()
+void Algorithm::ScheduleNextSlot()
+{
+	// |--switch--|-----------tx-----------|
+	// ^          ^      ^                 ^
+	// |          |      |                 |
+	// start      wait   start             next
+	// switching  random tx                slot
+	// |                 |                 |
+	// time_switch       time_tx           time_next
+	
+	// switching
+	ScheduleSwitch();
+	
+	if (is_stop)
+	{
+		return;
+	}
+
+	//(&YansWifiPhy::m_channelSwitchDelay = 250us)
+	Time time_switch = MicroSeconds (m_switchtime);
+	Time time_tx = time_switch + NanoSeconds (5000 * m_nodeId);
+	Time time_next  = time_switch + MilliSeconds (m_txtime);
+
+	//wait & tx
+	m_processEvent = Simulator::Schedule (time_tx, &Algorithm::ScheduleTx, this);
+
+	//next slot
+	m_processEvent = Simulator::Schedule (time_next, &Algorithm::ScheduleNextSlot, this);
+
+	++m_slot;
+}
+
+void Algorithm::ScheduleSwitch()
 {
 	if (m_slot==1)
 	{
+		Stop();
 		return;
 	}
 
 	//switch channel
 	SwitchChannel((m_nodeId % EECSim::numChannels)+100);
 
-	//(&YansWifiPhy::m_channelSwitchDelay = 250us)
-	m_processEvent = Simulator::Schedule (NanoSeconds (500000), &Algorithm::ScheduleTx, this);
-	//int interval = 500000;
-	//if (m_slot == 0)
-	//{
-	//	interval += 30*m_nodeId;
-	//}
-	//m_processEvent = Simulator::Schedule (NanoSeconds (interval), &Algorithm::SendPacket, this);
-	++m_slot;
 }
 
 void Algorithm::ScheduleTx()
@@ -136,8 +177,6 @@ void Algorithm::ScheduleTx()
 	data.dt = Simulator::Now();
 
 	Broadcast(data);
-
-	m_processEvent = Simulator::Schedule (MilliSeconds (200), &Algorithm::ScheduleNext, this);
 
 }
 
@@ -162,5 +201,10 @@ void Algorithm::SwitchChannel(uint32_t index)
 	m_phy->SetChannelNumber(index);
 	//m_phy->SetChannel(EECSim::GetChannel(index));
 	m_channelIndex = index;
+}
+
+void Algorithm::Stop()
+{
+	is_stop = true;
 }
 

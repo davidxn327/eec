@@ -39,7 +39,8 @@ public:
 	static TypeId GetTypeId(void);
 
 	static double GetNextRandom();
-	virtual void ScheduleNext();
+	void ScheduleNextSlot();
+	virtual void ScheduleSwitch();
 	virtual void ScheduleTx();
 	virtual void HandleRecv(DataPacket &data);
 
@@ -49,6 +50,7 @@ protected:
 	void Send(string addr, DataPacket &data);
 	void Broadcast(DataPacket &data);
 	void SwitchChannel(uint32_t index);
+	void Stop();
 
 	Ptr<Socket> m_socket;
 	PacketSocketAddress m_psAddr;
@@ -62,7 +64,13 @@ protected:
 
 	uint32_t m_nodeId;
 	uint32_t m_channelIndex;
-	int m_slot;
+	std::set<uint32_t> m_channels;
+	uint32_t m_switchtime;//500us
+	uint32_t m_txtime;//200ms
+	uint32_t m_slot;
+
+	bool is_skipSlot;
+	bool is_stop;
 
 private:
 	static Ptr<UniformRandomVariable> urv;

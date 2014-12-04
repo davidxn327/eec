@@ -9,7 +9,7 @@ public:
 	EEC ();
 	virtual ~EEC ();
 
-	virtual void ScheduleNext();
+	virtual void ScheduleSwitch();
 	virtual void ScheduleTx();
 	virtual void HandleRecv(DataPacket &data);
 
@@ -23,12 +23,12 @@ public:
 	SOC ();
 	virtual ~SOC ();
 
-	virtual void ScheduleNext();
+	virtual void ScheduleSwitch();
 	virtual void ScheduleTx();
 	virtual void HandleRecv(DataPacket &data);
 
 private:
-	//
+	std::map<uint32_t, DataPacket *> m_neighbors;
 };
 
 class CogMesh : public Algorithm
@@ -37,6 +37,7 @@ public:
 	CogMesh ();
 	virtual ~CogMesh ();
 
+	virtual void ScheduleSwitch();
 	virtual void ScheduleTx();
 	virtual void HandleRecv(DataPacket &data);
 

@@ -4,7 +4,7 @@
 EECSim::EECSim() :
 	numNodes(6),
 	radius(50),
-	algo("Test"),
+	pName("Test"),
 	phyMode("DsssRate1Mbps"),
 	verbose(false)
 {
@@ -16,7 +16,7 @@ EECSim::~EECSim()
 	//~
 	numNodes = 0;
 	radius = 0;
-	algo = "";
+	pName = "";
 	phyMode = "";
 }
 
@@ -47,7 +47,7 @@ void EECSim::ReadCommand(int argc, char *argv[])
 	cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
 	cmd.AddValue ("numNodes", "number of nodes", numNodes);
 	cmd.AddValue ("numChannels", "number of channels", numChannels);
-	cmd.AddValue ("algo", "select the algorithm", algo);
+	cmd.AddValue ("pName", "select the algorithm", pName);
 	cmd.AddValue ("verbose", "Tell echo applications to log if true", verbose);
 	cmd.Parse (argc, argv);
 }
@@ -59,8 +59,8 @@ void EECSim::MakeTopology()
 
 	MobilityHelper mobility;
 	mobility.SetPositionAllocator ("ns3::RandomRectanglePositionAllocator",
-			"X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=20.0]"),
-			"Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=20.0]"));
+			"X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=50.0]"),
+			"Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=50.0]"));
 	mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
 	mobility.InstallAll ();
 	//Config::Connect ("/NodeList/*/$ns3::MobilityModel/CourseChange",MakeCallback (&CourseChange));
@@ -113,15 +113,30 @@ void EECSim::InstallApp()
 	packetSocket.Install (c);
 
 	//applications
-	string appstr = "Test";
+	std::cout << "running: " << pName << std::endl;
 	for (NodeContainer::Iterator j = c.Begin ();j != c.End (); ++j)
 	{
-		//Ptr<Algorithm> app;
+		Ptr<Algorithm> app;
 		//app = CreateObject<Algorithm>();
-		Ptr<EEC> app;
-		app = CreateObject<EEC>();
+		if (pName == "eec")
+		{
+			app = CreateObject<EEC>();
+		}
+		else if (pName == "soc")
+		{
+			app = CreateObject<SOC>();
+		}
+		else if (pName == "cogmesh")
+		{
+			//app = CreateObject<CogMesh>();
+			app = CreateObject<Algorithm>();
+		}
+		else//default:Test
+		{
+			app = CreateObject<Algorithm>();
+		}
 		app->SetStartTime (Seconds (0));
-		app->SetStopTime (Seconds (3));
+		app->SetStopTime (Seconds (10));
 
 		Ptr<Node> object = *j;
 		object->AddApplication (app);

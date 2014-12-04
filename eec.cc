@@ -18,19 +18,16 @@ void EEC::HandleRecv(DataPacket &data)
 	std::cout << "(" << data.x << ", " << data.y << ")\t" << std::endl;
 }
 
-void EEC::ScheduleNext()
+void EEC::ScheduleSwitch()
 {
 	if (m_slot==1)
 	{
+		Stop();
 		return;
 	}
 
 	//switch channel
 	SwitchChannel((m_nodeId % EECSim::numChannels)+100);
-
-	//(&YansWifiPhy::m_channelSwitchDelay = 250us)
-	m_processEvent = Simulator::Schedule (NanoSeconds (500000), &EEC::ScheduleTx, this);
-	++m_slot;
 }
 
 void EEC::ScheduleTx()
@@ -49,8 +46,5 @@ void EEC::ScheduleTx()
 	data.dt = Simulator::Now();
 
 	Broadcast(data);
-
-	m_processEvent = Simulator::Schedule (MilliSeconds (200), &EEC::ScheduleNext, this);
-
 }
 

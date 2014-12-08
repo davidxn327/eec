@@ -48,6 +48,7 @@ public:
 	virtual void ScheduleSwitch();
 	virtual void ScheduleTx();
 	virtual void HandleRecv(DataPacket &data);
+	virtual void Procedure();
 
 protected:
 	virtual void DoDispose(void);

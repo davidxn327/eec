@@ -30,7 +30,7 @@ Algorithm::Algorithm() :
 	for (uint32_t i = 0; i < total; ++i)
 	{
 		double r = GetNextRandom();
-		if (r<0.9)
+		if (r<0.6)
 		{
 			m_channels.insert(i);
 		}
@@ -167,6 +167,9 @@ void Algorithm::ScheduleSwitch()
 	if (m_slot==1)
 	{
 		Stop();
+		
+		Procedure();
+
 		return;
 	}
 
@@ -223,3 +226,7 @@ void Algorithm::Stop()
 	is_stop = true;
 }
 
+void Algorithm::Procedure()
+{
+	//cluster algorithm runs here
+}

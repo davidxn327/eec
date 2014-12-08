@@ -51,6 +51,9 @@ void SOC::ScheduleSwitch()
 			}
 		}
 		std::cout << ")." << std::endl;
+
+		Procedure();
+
 		return;
 	}
 
@@ -90,3 +93,7 @@ void SOC::ScheduleTx()
 	Broadcast(data);
 }
 
+void SOC::Procedure()
+{
+	//cluster algorithm runs here
+}

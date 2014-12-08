@@ -14,7 +14,11 @@ public:
 	virtual void HandleRecv(DataPacket &data);
 
 private:
-	//
+	void Procedure();
+
+	std::map<uint32_t, DataPacket *> m_neighbors;
+	uint32_t m_prime;
+	uint32_t m_step;
 };
 
 class SOC : public Algorithm
@@ -28,6 +32,8 @@ public:
 	virtual void HandleRecv(DataPacket &data);
 
 private:
+	void Procedure();
+
 	std::map<uint32_t, DataPacket *> m_neighbors;
 };
 
